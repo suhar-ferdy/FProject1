@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "979590956205",
+    "firebase_url": "https://magnetic-racer-251606.firebaseio.com",
+    "project_id": "magnetic-racer-251606",
+    "storage_bucket": "magnetic-racer-251606.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:979590956205:android:22e2c982cc446e48b9f224",
+        "android_client_info": {
+          "package_name": "com.example.fproject1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "979590956205-qidqmf15i2a7j6u6b332u56gj63eh3mm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fproject1",
+            "certificate_hash": "ee9f8f33a79424480f74065b1ba2d63643659887"
+          }
+        },
+        {
+          "client_id": "979590956205-tigk3chguj0q78bltf4djhnscdfvn6fl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPEuG3A5v-ztATp4CtoUfx4Hm_gT5_4wI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "979590956205-tigk3chguj0q78bltf4djhnscdfvn6fl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

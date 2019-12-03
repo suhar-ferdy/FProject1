@@ -1,0 +1,30 @@
+package com.example.fproject1.adapter
+
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
+import com.example.fproject1.fragment.ChatFragment
+import com.example.fproject1.fragment.FriendListFragment
+
+
+class PagerAdapter (fm : FragmentManager) : FragmentPagerAdapter(fm){
+
+    override fun getItem(position: Int): Fragment {
+        return when (position){
+            0 -> ChatFragment()
+            else -> FriendListFragment()
+        }
+    }
+
+    override fun getCount(): Int {
+        return 2
+    }
+
+    override fun getPageTitle(position: Int): CharSequence? {
+        return when(position){
+            0->"Chat"
+            else->"Contacts"
+        }
+    }
+
+}
