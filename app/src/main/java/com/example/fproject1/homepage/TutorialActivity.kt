@@ -81,7 +81,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                     adapterContact.setOnItemClickListener{item, view ->
                         val userItem = item as ItemContact
                         val intent = Intent(view.context, ChatLogActivity::class.java)
-                        intent.putExtra(USER_KEY,userItem?.user.fname)
+                        intent.putExtra(USER_KEY,userItem?.user)
                         startActivity(intent)
 
                     }
