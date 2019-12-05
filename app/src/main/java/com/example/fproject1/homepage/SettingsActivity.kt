@@ -23,7 +23,7 @@ import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.custom_layout.view.*
 
 class SettingsActivity : AppCompatActivity(), View.OnClickListener {
-    private lateinit var currUser : FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -49,10 +49,9 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
             override fun onDataChange(p0: DataSnapshot) {
                 p0.children.forEach {
                     val userData = it.getValue(Account::class.java)
-                    val data : Account? = userData
-                    if(data?.uid == currUser){
-                        adapter.add(SettingsOptionAdapter(data!!))
-                        adapter.add(SettingsOptionAdapter(data!!))
+                    if(userData?.uid == currUser){
+                        adapter.add(SettingsOptionAdapter(userData!!))
+                        adapter.add(SettingsOptionAdapter(userData!!))
                     }
                     adapter.setOnItemClickListener { item, view ->
                         val pos = view.settings_textView_title.text as String

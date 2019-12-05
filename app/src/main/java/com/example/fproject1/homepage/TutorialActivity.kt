@@ -5,25 +5,38 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.viewpager.widget.ViewPager
 import com.example.fproject1.R
+import com.example.fproject1.item.ItemContact
 import com.example.fproject1.adapter.PagerAdapter
+import com.example.fproject1.chat.ChatLogActivity
 import com.example.fproject1.login.SignInActivity
+import com.example.fproject1.model.Account
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_tutorial.*
+import kotlinx.android.synthetic.main.fragment_friend_list.*
+
 @SuppressLint("RestrictedApi")
 class TutorialActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
     var floatOption : Int = 0
+
+    companion object{
+        val USER_KEY = "USER_KEY"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +44,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
 
         actionBarSettings()
         changeFloatingButtonImg()
+        fetchDataUsers()
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
@@ -47,6 +61,34 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         bg_win_add.setOnClickListener(this)
         form_add.setOnClickListener(this)
         floating_action_button.setOnClickListener(this)
+    }
+
+    private fun fetchDataUsers(){
+        val currUser = FirebaseAuth.getInstance().uid
+        val ref = FirebaseDatabase.getInstance().getReference("/Users")
+        val adapterContact = GroupAdapter<GroupieViewHolder>()
+        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                p0.children.forEach {
+                    val userData = it.getValue(Account::class.java)
+                    if(userData?.uid != currUser){
+                        adapterContact.add(ItemContact(userData!!))
+                    }
+                    adapterContact.setOnItemClickListener{item, view ->
+                        val userItem = item as ItemContact
+                        val intent = Intent(view.context, ChatLogActivity::class.java)
+                        intent.putExtra(USER_KEY,userItem?.user.fname)
+                        startActivity(intent)
+
+                    }
+                    rv_contact_list.adapter = adapterContact
+                }
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
