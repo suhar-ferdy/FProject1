@@ -7,7 +7,7 @@
     tools:context=".chat.ChatLogActivity">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/et_chat_log"
         android:layout_width="0dp"
         android:layout_height="50dp"
         android:layout_marginBottom="8dp"
@@ -17,12 +17,12 @@
         android:inputType="textPersonName"
         android:paddingLeft="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/button"
+        app:layout_constraintEnd_toStartOf="@+id/btn_chat_log_send"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btn_chat_log_send"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
         android:layout_marginBottom="8dp"
@@ -36,7 +36,7 @@
         android:layout_height="0dp"
         android:background="#86258EB4"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/et_chat_log"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

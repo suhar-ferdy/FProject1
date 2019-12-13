@@ -35,6 +35,7 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
         btn_cancel.setOnClickListener(this)
         btn_save.setOnClickListener(this)
         bg_win_setting.setOnClickListener(this)
+        form_settings.setOnClickListener(this)
     }
 
     private fun fetchDataUsers(){
@@ -89,7 +90,7 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
         val currUser = FirebaseAuth.getInstance().uid
         val ref = FirebaseDatabase.getInstance().getReference("/Users")
         val txt = edit_window_txtView.text.toString()
-        var same : Boolean = false
+        var same = false
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
@@ -134,6 +135,8 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
             R.id.btn_cancel -> editWindowGONE()
             R.id.bg_win_setting -> editWindowGONE()
             R.id.btn_save -> saveEditSettings()
+            R.id.form_add -> edit_window.visibility = View.VISIBLE
+
         }
     }
 
