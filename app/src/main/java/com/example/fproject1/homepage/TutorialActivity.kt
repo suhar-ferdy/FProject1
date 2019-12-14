@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -13,8 +14,10 @@ import com.example.fproject1.R
 import com.example.fproject1.item.ItemContact
 import com.example.fproject1.adapter.PagerAdapter
 import com.example.fproject1.chat.ChatLogActivity
+import com.example.fproject1.item.ItemLatestMessage
 import com.example.fproject1.login.SignInActivity
 import com.example.fproject1.model.Account
+import com.example.fproject1.model.Message
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -26,16 +29,19 @@ import com.google.firebase.database.ValueEventListener
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
 import kotlinx.android.synthetic.main.activity_tutorial.*
+import kotlinx.android.synthetic.main.fragment_chat.*
 import kotlinx.android.synthetic.main.fragment_friend_list.*
 
 @SuppressLint("RestrictedApi")
 class TutorialActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var my_user : Account
     var floatOption : Int = 0
 
     companion object{
         val USER_KEY = "USER_KEY"
+        val MY_KEY = "MY_KEY"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,9 +71,12 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun fetchDataUsers(){
         val currUser = FirebaseAuth.getInstance().uid
-        val ref = FirebaseDatabase.getInstance().getReference("/Users")
+        val refContact = FirebaseDatabase.getInstance().getReference("/Users")
+        val refLatestmessage = FirebaseDatabase.getInstance().getReference("/LatestMessage/$currUser")
         val adapterContact = GroupAdapter<GroupieViewHolder>()
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
+        val adapterLatestMessage = GroupAdapter<GroupieViewHolder>()
+        //load user contact
+        refContact.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {
 
             }
@@ -75,19 +84,55 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             override fun onDataChange(p0: DataSnapshot) {
                 p0.children.forEach {
                     val userData = it.getValue(Account::class.java)
-                    if(userData?.uid != currUser){
+                    if(userData?.uid == currUser){
+                        my_user = userData!!
+                    }
+                    else{
                         adapterContact.add(ItemContact(userData!!))
                     }
                     adapterContact.setOnItemClickListener{item, view ->
                         val userItem = item as ItemContact
                         val intent = Intent(view.context, ChatLogActivity::class.java)
                         intent.putExtra(USER_KEY,userItem?.user)
+                        intent.putExtra(MY_KEY,my_user)
                         startActivity(intent)
 
                     }
                     rv_contact_list.adapter = adapterContact
                 }
             }
+        })
+        //load user latest message
+        refLatestmessage.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                p0.children.forEach {
+                    val userMessage = it.getValue(Message::class.java)
+                    adapterLatestMessage.add(ItemLatestMessage(userMessage!!))
+                }
+                adapterLatestMessage.setOnItemClickListener { item, view ->
+                    val userItem = item as ItemLatestMessage
+                    val fromID = userItem.message.fromID
+                    refContact.child("/$fromID").addListenerForSingleValueEvent(object : ValueEventListener{
+                        override fun onCancelled(p0: DatabaseError) {
+
+                        }
+                        override fun onDataChange(p0: DataSnapshot) {
+                            val intent = Intent(this@TutorialActivity,ChatLogActivity::class.java)
+                            val userData = p0.getValue(Account::class.java)
+                            intent.putExtra(USER_KEY,userData)
+                            intent.putExtra(MY_KEY,my_user)
+                            startActivity(intent)
+                        }
+
+                    })
+                }
+                rv_latest_message.adapter = adapterLatestMessage
+            }
+
         })
     }
 

@@ -25,16 +25,19 @@ class ChatLogActivity : AppCompatActivity(), View.OnClickListener {
 
     var adapter = GroupAdapter<GroupieViewHolder>()
     private lateinit var friend : Account
+    private lateinit var my_user : Account
     private lateinit var uid : String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_log)
         //val username = intent.getStringExtra(TutorialActivity.USER_KEY)
-        val user = intent.getParcelableExtra<Account>(TutorialActivity.USER_KEY)
-        supportActionBar?.title = user.fname
-        supportActionBar!!.setTitle(Html.fromHtml("<font color='#ffffff'>FProject</font>"))
+        //val user = intent.getParcelableExtra<Account>(TutorialActivity.USER_KEY)
         friend = intent.getParcelableExtra(TutorialActivity.USER_KEY)
+        my_user = intent.getParcelableExtra(TutorialActivity.MY_KEY)
+
+        supportActionBar!!.setTitle(Html.fromHtml("<font color='#ffffff'>${friend.fname}</font>"))
+
         uid = FirebaseAuth.getInstance().uid!!
         rv_chat_log.adapter = adapter
         rv_chat_log.scrollToPosition(adapter.itemCount - 1)
@@ -49,13 +52,15 @@ class ChatLogActivity : AppCompatActivity(), View.OnClickListener {
         val ref2 = FirebaseDatabase.getInstance().getReference("/messages/${friend.uid}/$uid").push()
         val refLatestMessageMe = FirebaseDatabase.getInstance().getReference("/LatestMessage/$uid/${friend.uid}")
         val refLatestMessageFriend = FirebaseDatabase.getInstance().getReference("/LatestMessage/${friend.uid}/$uid")
-        val messageData = Message(uid,friend.uid,text)
+        val messageData = Message(uid,friend.uid,friend.fname,text)
+        val messageData2 = Message(uid,friend.uid,my_user.fname,text)
+
         if(text != ""){
             et_chat_log.text = null
             ref.setValue(messageData)
-            ref2.setValue(messageData)
+            ref2.setValue(messageData2)
             refLatestMessageMe.setValue(messageData)
-            refLatestMessageFriend.setValue(messageData)
+            refLatestMessageFriend.setValue(messageData2)
         }
 
     }
