@@ -13,6 +13,7 @@ class ItemLatestMessage(val message: Message) : Item<GroupieViewHolder>(){
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         viewHolder.itemView.txt_latest_message.text = message.text
+        viewHolder.itemView.txt_display_name.text = message.friendName
     }
 
 }

@@ -69,6 +69,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         floating_action_button.setOnClickListener(this)
     }
 
+    //load fragment content
     private fun fetchDataUsers(){
         val currUser = FirebaseAuth.getInstance().uid
         val refContact = FirebaseDatabase.getInstance().getReference("/Users")
@@ -102,6 +103,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
         })
+
         //load user latest message
         refLatestmessage.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
@@ -115,11 +117,17 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                 }
                 adapterLatestMessage.setOnItemClickListener { item, view ->
                     val userItem = item as ItemLatestMessage
-                    val fromID = userItem.message.fromID
+                    val uid = FirebaseAuth.getInstance().uid
+                    var fromID = ""
+                    if(uid == userItem.message.fromID)
+                        fromID = userItem.message.toID
+                    else
+                        fromID = userItem.message.fromID
+
                     refContact.child("/$fromID").addListenerForSingleValueEvent(object : ValueEventListener{
                         override fun onCancelled(p0: DatabaseError) {
-
                         }
+
                         override fun onDataChange(p0: DataSnapshot) {
                             val intent = Intent(this@TutorialActivity,ChatLogActivity::class.java)
                             val userData = p0.getValue(Account::class.java)
@@ -128,8 +136,10 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                             startActivity(intent)
                         }
 
+
                     })
                 }
+
                 rv_latest_message.adapter = adapterLatestMessage
             }
 
