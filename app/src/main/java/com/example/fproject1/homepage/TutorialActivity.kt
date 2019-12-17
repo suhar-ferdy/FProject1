@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
 import com.example.fproject1.R
 import com.example.fproject1.item.ItemContact
@@ -22,12 +23,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
+import kotlinx.android.synthetic.main.activity_chat_log.*
 import kotlinx.android.synthetic.main.activity_tutorial.*
 import kotlinx.android.synthetic.main.fragment_chat.*
 import kotlinx.android.synthetic.main.fragment_friend_list.*
@@ -67,6 +66,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         bg_win_add.setOnClickListener(this)
         form_add.setOnClickListener(this)
         floating_action_button.setOnClickListener(this)
+
     }
 
     //load fragment content
@@ -104,17 +104,24 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             }
         })
 
-        //load user latest message
-        refLatestmessage.addListenerForSingleValueEvent(object : ValueEventListener{
-            override fun onCancelled(p0: DatabaseError) {
 
+        //load user latest message
+        refLatestmessage.addChildEventListener(object : ChildEventListener{
+            override fun onCancelled(p0: DatabaseError) {
             }
 
-            override fun onDataChange(p0: DataSnapshot) {
-                p0.children.forEach {
-                    val userMessage = it.getValue(Message::class.java)
-                    adapterLatestMessage.add(ItemLatestMessage(userMessage!!))
-                }
+            override fun onChildMoved(p0: DataSnapshot, p1: String?) {
+            }
+
+            override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+                adapterLatestMessage.clear()
+                val userMessage = p0.getValue(Message::class.java)
+                adapterLatestMessage.add(ItemLatestMessage(userMessage!!))
+            }
+
+            override fun onChildAdded(p0: DataSnapshot, p1: String?) {
+                val userMessage = p0.getValue(Message::class.java)
+                adapterLatestMessage.add(ItemLatestMessage(userMessage!!))
                 adapterLatestMessage.setOnItemClickListener { item, view ->
                     val userItem = item as ItemLatestMessage
                     val uid = FirebaseAuth.getInstance().uid
@@ -139,8 +146,10 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
 
                     })
                 }
-
                 rv_latest_message.adapter = adapterLatestMessage
+            }
+
+            override fun onChildRemoved(p0: DataSnapshot) {
             }
 
         })

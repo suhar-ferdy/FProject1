@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.text.Html
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 
 import com.example.fproject1.R
 import com.example.fproject1.homepage.TutorialActivity
@@ -39,10 +40,11 @@ class ChatLogActivity : AppCompatActivity(), View.OnClickListener {
         supportActionBar!!.setTitle(Html.fromHtml("<font color='#ffffff'>${friend.fname}</font>"))
 
         uid = FirebaseAuth.getInstance().uid!!
-        rv_chat_log.adapter = adapter
-        rv_chat_log.scrollToPosition(adapter.itemCount - 1)
+
         fetchMessage()
 
+        rv_chat_log.adapter = adapter
+        rv_chat_log.scrollToPosition(adapter.itemCount - 1)
         btn_chat_log_send.setOnClickListener(this)
     }
 
@@ -86,6 +88,7 @@ class ChatLogActivity : AppCompatActivity(), View.OnClickListener {
                 else
                     adapter.add(ItemChatLogTo(data!!))
                 rv_chat_log.scrollToPosition(adapter.itemCount - 1)
+
             }
 
             override fun onChildRemoved(p0: DataSnapshot) {
