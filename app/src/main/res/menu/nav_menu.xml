@@ -2,8 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_settings"
         android:title="Settings"/>
-    <item android:id="@+id/action_live_edito"
-        android:title="Live Share Editor"/>
+    <item android:id="@+id/action_live_editor"
+        android:title="Live Share Editor">
+        <menu>
+            <item android:id="@+id/action_create_channel"
+                android:title="Create Channel"/>
+            <item android:id="@+id/action_join_channel"
+                android:title="Join Channel"/>
+
+        </menu>
+    </item>
     <item android:id="@+id/action_sign_out"
         android:title="Sign Out"/>
 

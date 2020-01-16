@@ -51,7 +51,7 @@
         app:srcCompat="@drawable/ic_action_chat" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/add_friend_window"
+        android:id="@+id/tutorial_window"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="false"
@@ -63,7 +63,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:id="@+id/bg_win_add"
+            android:id="@+id/tutorial_bg_win"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:alpha="0.8"
@@ -74,22 +74,22 @@
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:background="@drawable/settings_rounded_background"
-            app:layout_constraintBottom_toBottomOf="@id/bg_win_add">
+            app:layout_constraintBottom_toBottomOf="@id/tutorial_bg_win">
 
             <TextView
-                android:id="@+id/textView3"
+                android:id="@+id/tutorial_txt_category"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginTop="8dp"
-                android:text="Search User ID"
+                android:text="Category"
                 android:textColor="@android:color/black"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:id="@+id/edit_window_txtView"
+                android:id="@+id/tutorial_et_win"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -107,16 +107,42 @@
                 app:layout_constraintStart_toStartOf="@+id/edit_window_title" />
 
             <TextView
-                android:id="@+id/add_status_txt"
+                android:id="@+id/tutorial_txt_stat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:text="TextView"
-                app:layout_constraintBottom_toTopOf="@+id/edit_window_txtView"
+                app:layout_constraintBottom_toTopOf="@+id/tutorial_et_win"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView3"
+                app:layout_constraintTop_toBottomOf="@+id/tutorial_txt_category"
                 tools:visibility="invisible" />
+
+            <Button
+                android:id="@+id/tutorial_btn_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_button"
+                android:text="Confirm"
+                android:textColor="@android:color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/tutorial_et_win" />
+
+            <Button
+                android:id="@+id/tutorial_btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="32dp"
+                android:layout_marginRight="32dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_button"
+                android:text="Cancel"
+                android:textColor="@android:color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/tutorial_btn_confirm" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

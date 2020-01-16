@@ -1,6 +1,7 @@
 package com.example.fproject1.homepage
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,7 +10,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
 import com.example.fproject1.R
 import com.example.fproject1.item.ItemContact
@@ -17,7 +17,10 @@ import com.example.fproject1.adapter.PagerAdapter
 import com.example.fproject1.chat.ChatLogActivity
 import com.example.fproject1.item.ItemLatestMessage
 import com.example.fproject1.login.SignInActivity
+import com.example.fproject1.memo.MemoActivity
 import com.example.fproject1.model.Account
+import com.example.fproject1.model.LiveEditorMember
+import com.example.fproject1.model.LiveEditorRoom
 import com.example.fproject1.model.Message
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -26,8 +29,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
-import kotlinx.android.synthetic.main.activity_chat_log.*
+import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.activity_tutorial.*
+import kotlinx.android.synthetic.main.activity_tutorial.tutorial_et_win
 import kotlinx.android.synthetic.main.fragment_chat.*
 import kotlinx.android.synthetic.main.fragment_friend_list.*
 
@@ -41,6 +45,8 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
     companion object{
         val USER_KEY = "USER_KEY"
         val MY_KEY = "MY_KEY"
+        val ROOM_KEY = "ROOM_KEY"
+        val TUTORIAL_ACTIVITY = "T_ACTIVITY"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,10 +69,10 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         viewpager.adapter = adapter
         tab_layout.setupWithViewPager(viewpager)
 
-        bg_win_add.setOnClickListener(this)
+        tutorial_bg_win.setOnClickListener(this)
         form_add.setOnClickListener(this)
         floating_action_button.setOnClickListener(this)
-
+        tutorial_btn_confirm.setOnClickListener(this)
     }
 
     //load fragment content
@@ -164,6 +170,8 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         when(item.itemId){
             R.id.action_sign_out  -> signOut()
             R.id.action_settings -> settings()
+            R.id.action_create_channel -> showSettingsWindow("Create Channel","Enter New Channel ID")
+            R.id.action_join_channel -> showSettingsWindow("Join Channel","Enter Existing Channel ID")
         }
         return super.onOptionsItemSelected(item)
     }
@@ -211,8 +219,10 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(v : View){
         when(v.id){
             R.id.floating_action_button -> showAddContactWindow(floatOption)
-            R.id.bg_win_add -> hideAddContactWindow()
+            R.id.tutorial_bg_win -> hideAddContactWindow()
             R.id.form_add -> showAddContactWindow(floatOption)
+            R.id.tutorial_btn_confirm -> openMemo()
+
         }
     }
 
@@ -220,16 +230,135 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         when(pos){
             0 -> null
             1 -> {
-                add_friend_window.visibility = View.VISIBLE
+                tutorial_txt_category.text = "Search User ID"
+                tutorial_window.visibility = View.VISIBLE
                 floating_action_button.visibility = View.GONE
             }
 
         }
     }
 
+    private fun showSettingsWindow(title : String, hint : String){
+        tutorial_txt_stat.text =""
+        tutorial_txt_category.text = title
+        tutorial_et_win.hint = hint
+        tutorial_window.visibility = View.VISIBLE
+        floating_action_button.visibility = View.GONE
+    }
+
     private fun hideAddContactWindow(){
-        add_friend_window.visibility = View.GONE
+        tutorial_txt_stat.text =""
+        tutorial_et_win.setText("")
+        tutorial_window.visibility = View.GONE
         floating_action_button.visibility = View.VISIBLE
+    }
+
+
+    private fun openMemo(){
+        val roomID = tutorial_et_win.text.toString()
+        if(roomID == "") {
+            tutorial_txt_stat.text = "Please Enter New Channel ID"
+            return
+        }
+        else{
+            if(tutorial_txt_category.text.toString() == "Create Channel")
+                liveEditorOptions("create",roomID)
+            else if(tutorial_txt_category.text.toString() == "Join Channel")
+                liveEditorOptions("join",roomID)
+
+        }
+
+    }
+
+    private fun liveEditorOptions(option : String, roomID: String){
+        val ref = FirebaseDatabase.getInstance().getReference("/LiveEditor")
+        val uid = FirebaseAuth.getInstance().uid
+        val room = LiveEditorRoom(roomID,"")
+        var createRoom  = false
+        var isNewMember = "yes"
+        var stop = "yes"
+        ref.child("/Room/$roomID").addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                    if(option =="join"){
+                        val data = p0.getValue(LiveEditorRoom::class.java)
+                        //CHECK WHETHER ROOM EXIST OR NOT DB
+                        if(data?.roomID == roomID){
+                            //check if user already exists in room or not
+                            ref.child("/Member/$roomID").addListenerForSingleValueEvent(object : ValueEventListener{
+                                override fun onCancelled(p0: DatabaseError) {
+
+                                }
+                                override fun onDataChange(p0: DataSnapshot) {
+                                    val size = p0.childrenCount.toInt()
+                                    var count = 0
+                                    p0.children.forEach {
+                                        val data = it.getValue(LiveEditorMember::class.java)
+                                        count++
+
+                                        if(data?.uid == uid){
+                                            isNewMember = "no"
+                                            stop = "yes"
+                                            directToMemo(roomID)
+                                        }
+                                        else if(stop == "no"){
+                                            isNewMember = "yes"
+                                        }
+                                        else if(isNewMember == "yes" && count == size){
+                                            //insert user to DB as new member
+                                            Log.d("MeMo","new member : $isNewMember")
+                                            val isNewMember = LiveEditorMember(uid!!,"block","member")
+                                            ref.child("/Member/$roomID").push().setValue(isNewMember)
+                                            directToMemo(roomID)
+                                        }
+                                    }
+                                }
+                            })
+
+                        }
+                        //IF ROOM NOT EXISTS IN DB
+                        else{
+                            createRoom = false
+                            tutorial_txt_stat.text = "Channel Room do not exists"
+                        }
+
+                    }
+                    else{
+                        //CHECK WHETHER CHANNEL ID EXISTS OR NOT IN DATABASE
+                        val data = p0.getValue(LiveEditorRoom::class.java)
+                        if(data?.roomID == roomID){
+                            tutorial_txt_stat.text = "Channel ID already exists"
+                            createRoom = false
+                            return
+                        }
+                        else
+                            createRoom = true
+                    }
+
+                //CREATE CHANNEL ID IF THERE ARE NO DUPLICATE
+                if(createRoom){
+                    var member = LiveEditorMember(uid!!,"allow","host")
+                    ref.child("/Room/$roomID").setValue(room)
+                    ref.child("/Member/$roomID").push().setValue(member)
+                    directToMemo(roomID)
+                }
+
+
+
+            }
+        })
+
+
+    }
+
+    private fun directToMemo(roomID: String){
+        hideAddContactWindow()
+        val intent = Intent(this@TutorialActivity, MemoActivity::class.java)
+        intent.putExtra(ROOM_KEY,roomID)
+        startActivity(intent)
     }
 
 }

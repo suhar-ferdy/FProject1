@@ -1,13 +1,9 @@
 package com.example.fproject1.homepage
 
-import android.content.Intent
-import android.opengl.Visibility
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
-import android.util.Log
 import android.view.View
-import android.widget.Toast
 import com.example.fproject1.R
 import com.example.fproject1.adapter.SettingsOptionAdapter
 import com.example.fproject1.model.Account
@@ -18,7 +14,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
-import com.xwray.groupie.Item
 import kotlinx.android.synthetic.main.activity_settings.*
 import kotlinx.android.synthetic.main.custom_layout.view.*
 
@@ -71,12 +66,12 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
         when(pos){
             "Display Name" -> {
                 edit_window_title.text = "Enter your Name"
-                edit_window_txtView.setText(content)
+                tutorial_et_win.setText(content)
             }
 
             "ID" -> {
                 edit_window_title.text = "Enter your ID"
-                edit_window_txtView.setText(content)
+                tutorial_et_win.setText(content)
             }
         }
     }
@@ -89,7 +84,7 @@ class SettingsActivity : AppCompatActivity(), View.OnClickListener {
     private fun saveEditSettings(){
         val currUser = FirebaseAuth.getInstance().uid
         val ref = FirebaseDatabase.getInstance().getReference("/Users")
-        val txt = edit_window_txtView.text.toString()
+        val txt = tutorial_et_win.text.toString()
         var same = false
         ref.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onCancelled(p0: DatabaseError) {

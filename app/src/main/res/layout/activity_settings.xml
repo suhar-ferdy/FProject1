@@ -82,7 +82,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:id="@+id/edit_window_txtView"
+                android:id="@+id/tutorial_et_win"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
@@ -108,7 +108,7 @@
                 android:textColor="@android:color/white"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/edit_window_txtView"
+                app:layout_constraintTop_toBottomOf="@+id/tutorial_et_win"
                 app:layout_constraintVertical_bias="0.833" />
 
             <Button
@@ -128,7 +128,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/btn_save"
                 app:layout_constraintHorizontal_bias="0.989"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/edit_window_txtView"
+                app:layout_constraintTop_toBottomOf="@+id/tutorial_et_win"
                 app:layout_constraintVertical_bias="0.833" />
 
             <TextView
@@ -144,7 +144,7 @@
                 android:textColor="@android:color/holo_red_light"
                 android:textSize="14sp"
                 android:visibility="invisible"
-                app:layout_constraintBottom_toTopOf="@+id/edit_window_txtView"
+                app:layout_constraintBottom_toTopOf="@+id/tutorial_et_win"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/edit_window_title" />
