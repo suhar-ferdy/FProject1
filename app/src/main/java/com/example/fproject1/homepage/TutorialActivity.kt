@@ -3,6 +3,7 @@ package com.example.fproject1.homepage
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Html
@@ -72,7 +73,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         tutorial_bg_win.setOnClickListener(this)
         form_add.setOnClickListener(this)
         floating_action_button.setOnClickListener(this)
-        tutorial_btn_confirm.setOnClickListener(this)
+        tutorial_btn_cancel.setOnClickListener(this)
     }
 
     //load fragment content
@@ -170,8 +171,18 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         when(item.itemId){
             R.id.action_sign_out  -> signOut()
             R.id.action_settings -> settings()
-            R.id.action_create_channel -> showSettingsWindow("Create Channel","Enter New Channel ID")
-            R.id.action_join_channel -> showSettingsWindow("Join Channel","Enter Existing Channel ID")
+            R.id.action_create_channel -> {
+                showSettingsWindow("Create Channel","Enter New Channel ID")
+                tutorial_btn_confirm.setOnClickListener {
+                    floationgButtonClick("def")
+                }
+            }
+            R.id.action_join_channel -> {
+                showSettingsWindow("Join Channel","Enter Existing Channel ID")
+                tutorial_btn_confirm.setOnClickListener {
+                    floationgButtonClick("def")
+                }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -203,10 +214,12 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             }
             override fun onPageSelected(position: Int) {
                 if(position == 0){
-                    floating_action_button.setImageResource(R.drawable.ic_action_chat)
-                    floatOption = 0
+                    floating_action_button.visibility = View.GONE
+                    /*floating_action_button.setImageResource(R.drawable.ic_action_chat)
+                    floatOption = 0*/
                 }
                 else{
+                    floating_action_button.visibility = View.VISIBLE
                     floating_action_button.setImageResource(R.drawable.ic_action_add)
                     floatOption = 1
                 }
@@ -218,11 +231,15 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onClick(v : View){
         when(v.id){
-            R.id.floating_action_button -> showAddContactWindow(floatOption)
+            R.id.floating_action_button -> {
+                showAddContactWindow(floatOption)
+                tutorial_btn_confirm.setOnClickListener {
+                    floationgButtonClick("add_contact_click")
+                }
+            }
             R.id.tutorial_bg_win -> hideAddContactWindow()
             R.id.form_add -> showAddContactWindow(floatOption)
-            R.id.tutorial_btn_confirm -> openMemo()
-
+            R.id.tutorial_btn_cancel -> hideAddContactWindow()
         }
     }
 
@@ -231,6 +248,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             0 -> null
             1 -> {
                 tutorial_txt_category.text = "Search User ID"
+                tutorial_txt_stat.text = ""
                 tutorial_window.visibility = View.VISIBLE
                 floating_action_button.visibility = View.GONE
             }
@@ -254,22 +272,56 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
     }
 
 
-    private fun openMemo(){
-        val roomID = tutorial_et_win.text.toString()
-        if(roomID == "") {
-            tutorial_txt_stat.text = "Please Enter New Channel ID"
-            return
+    private fun floationgButtonClick(option: String){
+        if(option == "add_contact_click"){
+            addNewContactUser()
         }
         else{
-            if(tutorial_txt_category.text.toString() == "Create Channel")
-                liveEditorOptions("create",roomID)
-            else if(tutorial_txt_category.text.toString() == "Join Channel")
-                liveEditorOptions("join",roomID)
+            val roomID = tutorial_et_win.text.toString()
+            if(roomID == "") {
+                tutorial_txt_stat.text = "Please Enter Channel ID"
+                tutorial_txt_stat.setTextColor(Color.RED)
+                return
+            }
+            else{
+                if(tutorial_txt_category.text.toString() == "Create Channel")
+                    liveEditorOptions("create",roomID)
+                else if(tutorial_txt_category.text.toString() == "Join Channel")
+                    liveEditorOptions("join",roomID)
 
+            }
         }
 
     }
+    private fun addNewContactUser(){
+        if(tutorial_et_win.text.toString() != ""){
+            val uid = FirebaseAuth.getInstance().uid
+            val ref = FirebaseDatabase.getInstance().getReference("Users")
+            val refFriendList =  FirebaseDatabase.getInstance().getReference("User_Friend_List")
+            ref.addListenerForSingleValueEvent(object : ValueEventListener{
+                override fun onCancelled(p0: DatabaseError) {
+                }
 
+                override fun onDataChange(p0: DataSnapshot) {
+                    p0.children.forEach {
+                        val user = it.getValue(Account::class.java)
+                        if(user?.userId == tutorial_et_win.text.toString())
+                            refFriendList.child("/$uid").push().setValue(user.userId)
+                        else{
+                            tutorial_txt_stat.text = "User Do Not Exist"
+                            tutorial_txt_stat.setTextColor(Color.RED)
+                        }
+
+                    }
+                }
+            })
+        }
+        else{
+            tutorial_txt_stat.text = "Please Enter User ID"
+            tutorial_txt_stat.setTextColor(Color.RED)
+        }
+
+    }
     private fun liveEditorOptions(option : String, roomID: String){
         val ref = FirebaseDatabase.getInstance().getReference("/LiveEditor")
         val uid = FirebaseAuth.getInstance().uid
