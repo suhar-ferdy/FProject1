@@ -11,7 +11,8 @@
         android:theme="@style/AppTheme">
         <activity android:name=".memo.MemoActivity"
             android:label="Live Share Editor"></activity>
-        <activity android:name=".chat.ChatLogActivity" />
+        <activity android:name=".chat.ChatLogActivity"
+            android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".homepage.SettingsActivity" />
         <activity android:name=".homepage.TutorialActivity" />
         <activity

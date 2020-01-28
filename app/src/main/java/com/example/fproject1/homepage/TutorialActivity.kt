@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.viewpager.widget.ViewPager
 import com.example.fproject1.R
 import com.example.fproject1.item.ItemContact
@@ -19,10 +20,7 @@ import com.example.fproject1.chat.ChatLogActivity
 import com.example.fproject1.item.ItemLatestMessage
 import com.example.fproject1.login.SignInActivity
 import com.example.fproject1.memo.MemoActivity
-import com.example.fproject1.model.Account
-import com.example.fproject1.model.LiveEditorMember
-import com.example.fproject1.model.LiveEditorRoom
-import com.example.fproject1.model.Message
+import com.example.fproject1.model.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -112,7 +110,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         })
 
 
-        //load user latest message
+        /* <START>!---------- LOAD LATEST MESSAGES ----------!<START>*/
         refLatestmessage.addChildEventListener(object : ChildEventListener{
             override fun onCancelled(p0: DatabaseError) {
             }
@@ -121,9 +119,21 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             override fun onChildChanged(p0: DataSnapshot, p1: String?) {
+                /* <START>!---------- RELOAD LATEST MESSAGES ----------!<START>*/
                 adapterLatestMessage.clear()
-                val userMessage = p0.getValue(Message::class.java)
-                adapterLatestMessage.add(ItemLatestMessage(userMessage!!))
+                refLatestmessage.addListenerForSingleValueEvent(object : ValueEventListener{
+                    override fun onCancelled(p0: DatabaseError) {
+
+                    }
+
+                    override fun onDataChange(p0: DataSnapshot) {
+                        p0.children.forEach {
+                            val data = it.getValue(Message::class.java)
+                            adapterLatestMessage.add(ItemLatestMessage(data!!))
+                        }
+                    }
+                })
+                /* <END>!---------- RELOAD LATEST MESSAGES ----------!<END>*/
             }
 
             override fun onChildAdded(p0: DataSnapshot, p1: String?) {
@@ -160,6 +170,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             }
 
         })
+        /* <END>!---------- LOAD LATEST MESSAGES ----------!<END>*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -271,10 +282,15 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         floating_action_button.visibility = View.VISIBLE
     }
 
-
     private fun floationgButtonClick(option: String){
         if(option == "add_contact_click"){
-            addNewContactUser()
+            if(tutorial_et_win.text.toString() != ""){
+                checkUser()
+            }
+            else {
+                tutorial_txt_stat.text = "Please Enter User ID"
+                tutorial_txt_stat.setTextColor(Color.RED)
+            }
         }
         else{
             val roomID = tutorial_et_win.text.toString()
@@ -293,35 +309,64 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         }
 
     }
-    private fun addNewContactUser(){
-        if(tutorial_et_win.text.toString() != ""){
-            val uid = FirebaseAuth.getInstance().uid
-            val ref = FirebaseDatabase.getInstance().getReference("Users")
-            val refFriendList =  FirebaseDatabase.getInstance().getReference("User_Friend_List")
-            ref.addListenerForSingleValueEvent(object : ValueEventListener{
-                override fun onCancelled(p0: DatabaseError) {
-                }
 
-                override fun onDataChange(p0: DataSnapshot) {
-                    p0.children.forEach {
-                        val user = it.getValue(Account::class.java)
-                        if(user?.userId == tutorial_et_win.text.toString())
-                            refFriendList.child("/$uid").push().setValue(user.userId)
-                        else{
+    private fun checkUser(){
+        var warn = "yes"
+                val uid = FirebaseAuth.getInstance().uid
+                val ref = FirebaseDatabase.getInstance().getReference("Users")
+                ref.addListenerForSingleValueEvent(object : ValueEventListener{
+                    override fun onCancelled(p0: DatabaseError) {
+                    }
+
+                    override fun onDataChange(p0: DataSnapshot) {
+                        p0.children.forEach {
+                            val user = it.getValue(Account::class.java)
+                            if(user?.userId == tutorial_et_win.text.toString() && user.uid != uid){
+                                checkMyFriendList(user,uid!!)
+                                warn = "no"
+                            }
+                        }
+                        if(warn == "yes"){
                             tutorial_txt_stat.text = "User Do Not Exist"
                             tutorial_txt_stat.setTextColor(Color.RED)
                         }
+                    }
+                })
+    }
 
+    private fun addContact(user : Account,uid : String){
+        val ref =  FirebaseDatabase.getInstance().getReference("User_Friend_List")
+        val value = Friend(user.uid,user.userId)
+        ref.child("/$uid").push().setValue(value)
+    }
+    private fun checkMyFriendList(user : Account,uid : String){
+        var run_addContact = "yes"
+        val myUid = FirebaseAuth.getInstance().uid
+        val ref =  FirebaseDatabase.getInstance().getReference("User_Friend_List/$myUid")
+        ref.addListenerForSingleValueEvent(object : ValueEventListener{
+            override fun onCancelled(p0: DatabaseError) {
+
+            }
+
+            override fun onDataChange(p0: DataSnapshot) {
+                p0.children.forEach {
+                    val data = it.getValue(Friend::class.java)
+                    if(data?.userId == tutorial_et_win.text.toString()){
+                        tutorial_txt_stat.text = "Already Friend With User"
+                        tutorial_txt_stat.setTextColor(Color.RED)
+                        run_addContact ="no"
                     }
                 }
-            })
-        }
-        else{
-            tutorial_txt_stat.text = "Please Enter User ID"
-            tutorial_txt_stat.setTextColor(Color.RED)
-        }
+                if(run_addContact == "yes"){
+                    addContact(user,uid)
+                    hideAddContactWindow()
+                    Toast.makeText(this@TutorialActivity,"User Added",Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
 
     }
+
     private fun liveEditorOptions(option : String, roomID: String){
         val ref = FirebaseDatabase.getInstance().getReference("/LiveEditor")
         val uid = FirebaseAuth.getInstance().uid
