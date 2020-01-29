@@ -74,40 +74,52 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         tutorial_btn_cancel.setOnClickListener(this)
     }
 
-    //load fragment content
+    /* <START>!---------- LOAD FRAGMENT CONTENT----------!<START>*/
     private fun fetchDataUsers(){
         val currUser = FirebaseAuth.getInstance().uid
         val refContact = FirebaseDatabase.getInstance().getReference("/Users")
+        val refFL = FirebaseDatabase.getInstance().getReference("/User_Friend_List/$currUser")
         val refLatestmessage = FirebaseDatabase.getInstance().getReference("/LatestMessage/$currUser")
         val adapterContact = GroupAdapter<GroupieViewHolder>()
         val adapterLatestMessage = GroupAdapter<GroupieViewHolder>()
-        //load user contact
-        refContact.addListenerForSingleValueEvent(object : ValueEventListener {
+
+        /* <START>!---------- LOAD USER FRIEND LIST ----------!<START>*/
+        refFL.addListenerForSingleValueEvent(object : ValueEventListener{
             override fun onCancelled(p0: DatabaseError) {
 
             }
 
             override fun onDataChange(p0: DataSnapshot) {
                 p0.children.forEach {
-                    val userData = it.getValue(Account::class.java)
-                    if(userData?.uid == currUser){
-                        my_user = userData!!
-                    }
-                    else{
-                        adapterContact.add(ItemContact(userData!!))
-                    }
-                    adapterContact.setOnItemClickListener{item, view ->
-                        val userItem = item as ItemContact
-                        val intent = Intent(view.context, ChatLogActivity::class.java)
-                        intent.putExtra(USER_KEY,userItem?.user)
-                        intent.putExtra(MY_KEY,my_user)
-                        startActivity(intent)
+                    val fl = it.getValue(Friend::class.java)
+                    refContact.addListenerForSingleValueEvent(object : ValueEventListener{
+                        override fun onCancelled(p0: DatabaseError) {
 
-                    }
-                    rv_contact_list.adapter = adapterContact
+                        }
+
+                        override fun onDataChange(p0: DataSnapshot) {
+                            p0.children.forEach {
+                                val user = it.getValue(Account::class.java)
+                                if(user!!.uid == currUser)
+                                    my_user = user
+                                else if(fl?.friendUid == user.uid)
+                                    adapterContact.add(ItemContact(user!!))
+                                adapterContact.setOnItemClickListener{item, view ->
+                                    val userItem = item as ItemContact
+                                    val intent = Intent(view.context, ChatLogActivity::class.java)
+                                    intent.putExtra(USER_KEY,userItem?.user)
+                                    intent.putExtra(MY_KEY,my_user)
+                                    startActivity(intent)
+
+                                }
+                                rv_contact_list.adapter = adapterContact
+                            }
+                        }
+                    })
                 }
             }
         })
+        /* <END>!---------- LOAD USER FRIEND LIST ----------!<END>*/
 
 
         /* <START>!---------- LOAD LATEST MESSAGES ----------!<START>*/
@@ -172,6 +184,7 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
         })
         /* <END>!---------- LOAD LATEST MESSAGES ----------!<END>*/
     }
+    /* <END>!---------- LOAD FRAGMENT CONTENT----------!<END>*/
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.nav_menu,menu)
@@ -325,6 +338,8 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                                 checkMyFriendList(user,uid!!)
                                 warn = "no"
                             }
+                            if(user!!.uid == uid)
+                                my_user = user
                         }
                         if(warn == "yes"){
                             tutorial_txt_stat.text = "User Do Not Exist"
@@ -334,10 +349,12 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
                 })
     }
 
-    private fun addContact(user : Account,uid : String){
+    private fun addContact(user : Account,my_uid : String){
         val ref =  FirebaseDatabase.getInstance().getReference("User_Friend_List")
-        val value = Friend(user.uid,user.userId)
-        ref.child("/$uid").push().setValue(value)
+        val friend = Friend(user.uid,user.userId)
+        val me = Friend(my_user.uid,my_user.userId)
+        ref.child("/$my_uid").push().setValue(friend)
+        ref.child("/${friend.friendUid}").push().setValue(me)
     }
     private fun checkMyFriendList(user : Account,uid : String){
         var run_addContact = "yes"
@@ -349,18 +366,25 @@ class TutorialActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             override fun onDataChange(p0: DataSnapshot) {
-                p0.children.forEach {
-                    val data = it.getValue(Friend::class.java)
-                    if(data?.userId == tutorial_et_win.text.toString()){
-                        tutorial_txt_stat.text = "Already Friend With User"
-                        tutorial_txt_stat.setTextColor(Color.RED)
-                        run_addContact ="no"
-                    }
-                }
-                if(run_addContact == "yes"){
+                if(!p0.exists()){
                     addContact(user,uid)
                     hideAddContactWindow()
                     Toast.makeText(this@TutorialActivity,"User Added",Toast.LENGTH_SHORT).show()
+                }
+                else{
+                    p0.children.forEach {
+                        val data = it.getValue(Friend::class.java)
+                        if(data?.userId == tutorial_et_win.text.toString()){
+                            tutorial_txt_stat.text = "Already Friend With User"
+                            tutorial_txt_stat.setTextColor(Color.RED)
+                            run_addContact ="no"
+                        }
+                    }
+                    if(run_addContact == "yes"){
+                        addContact(user,uid)
+                        hideAddContactWindow()
+                        Toast.makeText(this@TutorialActivity,"User Added",Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         })
